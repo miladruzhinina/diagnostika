@@ -805,6 +805,90 @@ a { color: inherit; }
 .sphere-row.neutral .sphere-bar { background: var(--color-text-faint); left: 50%; }
 
 /* ===========================
+   BUTTERFLY CHART
+   =========================== */
+.butterfly-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+.bf-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 2rem;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bf-name {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.3;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bf-track {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  position: relative;
+}
+
+.bf-bar-left {
+  height: 6px;
+  border-radius: var(--radius-full) 0 0 var(--radius-full);
+  margin-left: auto;
+  transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  background: transparent;
+}
+
+.bf-bar-left.bf-stress {
+  background: var(--color-stress);
+  opacity: 0.75;
+}
+
+.bf-center {
+  width: 2px;
+  height: 14px;
+  background: var(--color-border);
+  flex-shrink: 0;
+  border-radius: 1px;
+}
+
+.bf-bar-right {
+  height: 6px;
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+  transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  background: transparent;
+}
+
+.bf-bar-right.bf-resource {
+  background: var(--color-resource);
+  opacity: 0.75;
+}
+
+.bf-bar-right.bf-neutral {
+  background: var(--color-text-faint);
+  opacity: 0.5;
+}
+
+.bf-score {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1;
+  min-width: 2rem;
+}
+
+.bf-score--stress  { color: var(--color-stress); }
+.bf-score--resource{ color: var(--color-resource); }
+.bf-score--neutral { color: var(--color-text-faint); }
+
+/* ===========================
    STRESSOR SELECTION
    =========================== */
 .stressor-section {

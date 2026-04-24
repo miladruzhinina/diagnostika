@@ -130,140 +130,128 @@ function saveAndNext() {
   showQuestion(state.currentIdx + 1);
 }
 
-// ── Вспомогательная: строим SVG весов по стилю главного экрана ────────────
+// ── Тонкие линейные весы с настоящими чашами-дугами ──────────────────────
 function buildScalesSVG(totalStress, totalResource) {
-  const maxTilt = 18;
+  const maxTilt = 14;
   const diff    = totalStress - totalResource;
   const maxDiff = Math.max(totalStress + totalResource, 1);
   const tiltDeg = Math.min(Math.max((diff / maxDiff) * maxTilt, -maxTilt), maxTilt);
   const rad     = (tiltDeg * Math.PI) / 180;
 
-  // Координаты — те же пропорции, что на welcome-иконке (viewBox 120)
-  // Масштабируем на 300: коэф ≈ 2.5
-  const W = 300, cx = 150, cy = 52;
-  const arm = 105; // плечо балки
+  // viewBox 280 × 160, центр опоры cx=140, cy=38
+  const W = 280, H = 160;
+  const cx = 140, cy = 38;
+  const arm = 98; // плечо балки от центра
 
-  // Концы балки после поворота
-  const lx = cx - arm * Math.cos(rad), ly = cy - arm * Math.sin(rad);
-  const rx = cx + arm * Math.cos(rad), ry = cy + arm * Math.sin(rad);
+  // Концы балки (точки подвеса цепей)
+  const lx = cx - arm * Math.cos(rad), ly = cy + arm * Math.sin(rad);
+  const rx = cx + arm * Math.cos(rad), ry = cy - arm * Math.sin(rad);
 
-  // Нижние точки треугольника цепей (вершина треугольника наверху — на конце балки)
-  const triH  = 42; // высота треугольника цепей
-  const triHW = 28; // полуширина основания треугольника
-  const lbMid = [lx, ly + triH];       // середина основания левого треугольника
-  const rbMid = [rx, ry + triH];
+  // Параметры цепей (3 нити — веером из точки подвеса)
+  const chainH = 38;  // длина нитей
+  const bowlR  = 28;  // радиус/полуширина чаши
 
-  // Чаша: ширина = triHW*2, немного шире треугольника
-  const bowlW = triHW + 4;
-  const bowlH = 10; // высота тела чаши
+  // Нижние точки нитей: левая, средняя, правая
+  const lBL = [lx - bowlR, ly + chainH];
+  const lBM = [lx,          ly + chainH * 0.88]; // средняя нить чуть короче
+  const lBR = [lx + bowlR,  ly + chainH];
+  const rBL = [rx - bowlR, ry + chainH];
+  const rBM = [rx,          ry + chainH * 0.88];
+  const rBR = [rx + bowlR,  ry + chainH];
 
-  // Подписи
-  const labelY_l = ly + triH + bowlH + 20;
-  const labelY_r = ry + triH + bowlH + 20;
+  // Чаша — дуга через SVG arc (полукруглая снизу)
+  const bowlDepth = 14; // глубина чаши
+  // path: M left top → arc → right top
+  function bowlPath(bl, br) {
+    const mx = (bl[0] + br[0]) / 2;
+    const ty = Math.min(bl[1], br[1]); // верхняя линия обода
+    const by = ty + bowlDepth;          // нижняя точка дуги
+    return `M ${bl[0].toFixed(1)} ${ty.toFixed(1)} Q ${mx.toFixed(1)} ${by.toFixed(1)} ${br[0].toFixed(1)} ${ty.toFixed(1)}`;
+  }
+
+  const lBowl = bowlPath(lBL, lBR);
+  const rBowl = bowlPath(rBL, rBR);
+  const lBowlFill = bowlPath(lBL, lBR) + ` L ${lBR[0].toFixed(1)} ${lBL[1].toFixed(1)} L ${lBL[0].toFixed(1)} ${lBL[1].toFixed(1)} Z`;
+  const rBowlFill = bowlPath(rBL, rBR) + ` L ${rBR[0].toFixed(1)} ${rBL[1].toFixed(1)} L ${rBL[0].toFixed(1)} ${rBL[1].toFixed(1)} Z`;
+
+  const labelY = Math.max(lBL[1], rBL[1]) + bowlDepth + 14;
 
   return `
-    <svg viewBox="0 0 ${W} 200" width="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 ${W} ${H}" width="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
 
-      <!-- Столб -->
-      <rect x="${cx - 5}" y="${cy}" width="10" height="120" rx="5" fill="var(--color-primary)"/>
-      <!-- Основание -->
-      <path d="M ${cx - 35} 170 L ${cx - 20} 158 L ${cx + 20} 158 L ${cx + 35} 170 L ${cx + 35} 180 Q ${cx} 186 ${cx - 35} 180 Z"
-        fill="var(--color-primary)"/>
+      <!-- Столб (тонкий) -->
+      <line x1="${cx}" y1="${cy + 4}" x2="${cx}" y2="${cy + 100}"
+        stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round"/>
 
-      <!-- Центральная опора -->
-      <circle cx="${cx}" cy="${cy}" r="8" fill="var(--color-primary)"/>
-      <circle cx="${cx}" cy="${cy}" r="4.2" fill="var(--color-surface, #faf9f6)" opacity="0.7"/>
+      <!-- Основание — элегантная горизонтальная черта -->
+      <line x1="${cx - 22}" y1="${cy + 100}" x2="${cx + 22}" y2="${cy + 100}"
+        stroke="var(--color-primary)" stroke-width="3" stroke-linecap="round"/>
+      <line x1="${cx - 14}" y1="${cy + 104}" x2="${cx + 14}" y2="${cy + 104}"
+        stroke="var(--color-primary)" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
 
-      <!-- Балка -->
-      <rect x="${lx.toFixed(1)}" y="${(Math.min(ly, ry) - 4).toFixed(1)}"
-        width="${(2 * arm).toFixed(1)}" height="8" rx="4"
-        fill="var(--color-primary)"
-        transform="rotate(${(-tiltDeg).toFixed(2)}, ${cx}, ${cy})"/>
+      <!-- Центральная опора — маленький ромб -->
+      <circle cx="${cx}" cy="${cy}" r="4.5" fill="var(--color-primary)"/>
+      <circle cx="${cx}" cy="${cy}" r="2" fill="var(--color-bg, #f5f3ef)"/>
 
-      <!-- Крюки на концах балки -->
-      <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4.5"
-        fill="var(--color-primary)" stroke="var(--color-surface, #faf9f6)" stroke-width="2"/>
-      <circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="4.5"
-        fill="var(--color-primary)" stroke="var(--color-surface, #faf9f6)" stroke-width="2"/>
+      <!-- Балка (тонкая линия) -->
+      <line
+        x1="${lx.toFixed(2)}" y1="${ly.toFixed(2)}"
+        x2="${rx.toFixed(2)}" y2="${ry.toFixed(2)}"
+        stroke="var(--color-primary)" stroke-width="1.8" stroke-linecap="round"/>
 
-      <!-- === ЛЕВЫЕ ЦЕПИ (треугольник) === -->
-      <line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}"
-            x2="${(lbMid[0] - triHW).toFixed(1)}" y2="${lbMid[1].toFixed(1)}"
-        stroke="var(--color-stress)" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}"
-            x2="${(lbMid[0] + triHW).toFixed(1)}" y2="${lbMid[1].toFixed(1)}"
-        stroke="var(--color-stress)" stroke-width="1.8" stroke-linecap="round"/>
-      <!-- Узелки -->
-      <circle cx="${(lbMid[0] - triHW).toFixed(1)}" cy="${lbMid[1].toFixed(1)}"
-        r="3" fill="var(--color-stress)" opacity="0.85"/>
-      <circle cx="${(lbMid[0] + triHW).toFixed(1)}" cy="${lbMid[1].toFixed(1)}"
-        r="3" fill="var(--color-stress)" opacity="0.85"/>
+      <!-- Точки подвеса -->
+      <circle cx="${lx.toFixed(2)}" cy="${ly.toFixed(2)}" r="2.5" fill="var(--color-primary)"/>
+      <circle cx="${rx.toFixed(2)}" cy="${ry.toFixed(2)}" r="2.5" fill="var(--color-primary)"/>
+
+      <!-- === ЛЕВЫЕ НИТИ (3 штуки, веером) === -->
+      <line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${lBL[0].toFixed(1)}" y2="${lBL[1].toFixed(1)}"
+        stroke="var(--color-stress)" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+      <line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${lBM[0].toFixed(1)}" y2="${lBM[1].toFixed(1)}"
+        stroke="var(--color-stress)" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+      <line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${lBR[0].toFixed(1)}" y2="${lBR[1].toFixed(1)}"
+        stroke="var(--color-stress)" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
 
       <!-- === ЛЕВАЯ ЧАША === -->
-      <!-- Ободок -->
-      <line x1="${(lbMid[0] - bowlW).toFixed(1)}" y1="${lbMid[1].toFixed(1)}"
-            x2="${(lbMid[0] + bowlW).toFixed(1)}" y2="${lbMid[1].toFixed(1)}"
-        stroke="var(--color-stress)" stroke-width="2.5" stroke-linecap="round"/>
-      <!-- Тело чаши -->
-      <path d="M ${(lbMid[0] - bowlW).toFixed(1)} ${lbMid[1].toFixed(1)}
-               L ${(lbMid[0] - bowlW + 5).toFixed(1)} ${(lbMid[1] + bowlH).toFixed(1)}
-               Q ${lbMid[0].toFixed(1)} ${(lbMid[1] + bowlH * 2).toFixed(1)}
-                 ${(lbMid[0] + bowlW - 5).toFixed(1)} ${(lbMid[1] + bowlH).toFixed(1)}
-               L ${(lbMid[0] + bowlW).toFixed(1)} ${lbMid[1].toFixed(1)} Z"
-        fill="var(--color-stress)" opacity="0.18"/>
-      <path d="M ${(lbMid[0] - bowlW).toFixed(1)} ${lbMid[1].toFixed(1)}
-               L ${(lbMid[0] - bowlW + 5).toFixed(1)} ${(lbMid[1] + bowlH).toFixed(1)}
-               Q ${lbMid[0].toFixed(1)} ${(lbMid[1] + bowlH * 2).toFixed(1)}
-                 ${(lbMid[0] + bowlW - 5).toFixed(1)} ${(lbMid[1] + bowlH).toFixed(1)}
-               L ${(lbMid[0] + bowlW).toFixed(1)} ${lbMid[1].toFixed(1)}"
-        stroke="var(--color-stress)" stroke-width="2" fill="none" stroke-linejoin="round"/>
-      <!-- Счёт -->
-      <text x="${lbMid[0].toFixed(1)}" y="${(lbMid[1] + bowlH + 2).toFixed(1)}"
+      <!-- Заливка -->
+      <path d="${lBowlFill}" fill="var(--color-stress)" opacity="0.1"/>
+      <!-- Обод (горизонтальная линия) -->
+      <line x1="${lBL[0].toFixed(1)}" y1="${lBL[1].toFixed(1)}" x2="${lBR[0].toFixed(1)}" y2="${lBR[1].toFixed(1)}"
+        stroke="var(--color-stress)" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Дуга чаши -->
+      <path d="${lBowl}" stroke="var(--color-stress)" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Счёт внутри чаши -->
+      <text x="${lx.toFixed(1)}" y="${(lBL[1] + 6).toFixed(1)}"
         text-anchor="middle" dominant-baseline="middle"
-        font-family="Cormorant Garamond, serif" font-size="16" font-weight="700"
-        fill="var(--color-stress)">${totalStress > 0 ? '\u2212' + totalStress : '0'}</text>
-      <!-- Подпись -->
-      <text x="${lbMid[0].toFixed(1)}" y="${labelY_l.toFixed(1)}"
-        text-anchor="middle"
-        font-family="Nunito, sans-serif" font-size="9" font-weight="800"
-        fill="var(--color-stress)" letter-spacing="0.07em" opacity="0.75">\u0421\u0422\u0420\u0415\u0421\u0421\u041e\u0420\u042b</text>
+        font-family="Cormorant Garamond, serif" font-size="13" font-weight="600"
+        fill="var(--color-stress)" opacity="0.9">${totalStress > 0 ? '\u2212' + totalStress : '0'}</text>
 
-      <!-- === ПРАВЫЕ ЦЕПИ (треугольник) === -->
-      <line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}"
-            x2="${(rbMid[0] - triHW).toFixed(1)}" y2="${rbMid[1].toFixed(1)}"
-        stroke="var(--color-resource)" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}"
-            x2="${(rbMid[0] + triHW).toFixed(1)}" y2="${rbMid[1].toFixed(1)}"
-        stroke="var(--color-resource)" stroke-width="1.8" stroke-linecap="round"/>
-      <circle cx="${(rbMid[0] - triHW).toFixed(1)}" cy="${rbMid[1].toFixed(1)}"
-        r="3" fill="var(--color-resource)" opacity="0.85"/>
-      <circle cx="${(rbMid[0] + triHW).toFixed(1)}" cy="${rbMid[1].toFixed(1)}"
-        r="3" fill="var(--color-resource)" opacity="0.85"/>
+      <!-- === ПРАВЫЕ НИТИ === -->
+      <line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${rBL[0].toFixed(1)}" y2="${rBL[1].toFixed(1)}"
+        stroke="var(--color-resource)" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+      <line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${rBM[0].toFixed(1)}" y2="${rBM[1].toFixed(1)}"
+        stroke="var(--color-resource)" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+      <line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${rBR[0].toFixed(1)}" y2="${rBR[1].toFixed(1)}"
+        stroke="var(--color-resource)" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
 
       <!-- === ПРАВАЯ ЧАША === -->
-      <line x1="${(rbMid[0] - bowlW).toFixed(1)}" y1="${rbMid[1].toFixed(1)}"
-            x2="${(rbMid[0] + bowlW).toFixed(1)}" y2="${rbMid[1].toFixed(1)}"
-        stroke="var(--color-resource)" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M ${(rbMid[0] - bowlW).toFixed(1)} ${rbMid[1].toFixed(1)}
-               L ${(rbMid[0] - bowlW + 5).toFixed(1)} ${(rbMid[1] + bowlH).toFixed(1)}
-               Q ${rbMid[0].toFixed(1)} ${(rbMid[1] + bowlH * 2).toFixed(1)}
-                 ${(rbMid[0] + bowlW - 5).toFixed(1)} ${(rbMid[1] + bowlH).toFixed(1)}
-               L ${(rbMid[0] + bowlW).toFixed(1)} ${rbMid[1].toFixed(1)} Z"
-        fill="var(--color-resource)" opacity="0.18"/>
-      <path d="M ${(rbMid[0] - bowlW).toFixed(1)} ${rbMid[1].toFixed(1)}
-               L ${(rbMid[0] - bowlW + 5).toFixed(1)} ${(rbMid[1] + bowlH).toFixed(1)}
-               Q ${rbMid[0].toFixed(1)} ${(rbMid[1] + bowlH * 2).toFixed(1)}
-                 ${(rbMid[0] + bowlW - 5).toFixed(1)} ${(rbMid[1] + bowlH).toFixed(1)}
-               L ${(rbMid[0] + bowlW).toFixed(1)} ${rbMid[1].toFixed(1)}"
-        stroke="var(--color-resource)" stroke-width="2" fill="none" stroke-linejoin="round"/>
-      <text x="${rbMid[0].toFixed(1)}" y="${(rbMid[1] + bowlH + 2).toFixed(1)}"
+      <path d="${rBowlFill}" fill="var(--color-resource)" opacity="0.1"/>
+      <line x1="${rBL[0].toFixed(1)}" y1="${rBL[1].toFixed(1)}" x2="${rBR[0].toFixed(1)}" y2="${rBR[1].toFixed(1)}"
+        stroke="var(--color-resource)" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="${rBowl}" stroke="var(--color-resource)" stroke-width="1.8" stroke-linecap="round"/>
+      <text x="${rx.toFixed(1)}" y="${(rBL[1] + 6).toFixed(1)}"
         text-anchor="middle" dominant-baseline="middle"
-        font-family="Cormorant Garamond, serif" font-size="16" font-weight="700"
-        fill="var(--color-resource)">${totalResource > 0 ? '+' + totalResource : '0'}</text>
-      <text x="${rbMid[0].toFixed(1)}" y="${labelY_r.toFixed(1)}"
+        font-family="Cormorant Garamond, serif" font-size="13" font-weight="600"
+        fill="var(--color-resource)" opacity="0.9">${totalResource > 0 ? '+' + totalResource : '0'}</text>
+
+      <!-- Подписи под чашами -->
+      <text x="${lx.toFixed(1)}" y="${labelY.toFixed(1)}"
         text-anchor="middle"
-        font-family="Nunito, sans-serif" font-size="9" font-weight="800"
-        fill="var(--color-resource)" letter-spacing="0.07em" opacity="0.75">\u0420\u0415\u0421\u0423\u0420\u0421\u042b</text>
+        font-family="Nunito, sans-serif" font-size="8" font-weight="800"
+        fill="var(--color-stress)" letter-spacing="0.08em" opacity="0.6">СТРЕССОРЫ</text>
+      <text x="${rx.toFixed(1)}" y="${labelY.toFixed(1)}"
+        text-anchor="middle"
+        font-family="Nunito, sans-serif" font-size="8" font-weight="800"
+        fill="var(--color-resource)" letter-spacing="0.08em" opacity="0.6">РЕСУРСЫ</text>
     </svg>
   `;
 }
@@ -291,34 +279,39 @@ function showResults() {
   scalesWrap.innerHTML = `<div class="scales-svg-container">${buildScalesSVG(totalStress, totalResource)}</div>`;
   body.appendChild(scalesWrap);
 
-  // ── Таблица сфер ──────────────────────────────────────────────────────
-  function buildSection(list, type, label) {
-    if (!list.length) return;
-    const labelEl = document.createElement('p');
-    labelEl.className = 'results-section-label';
-    labelEl.textContent = label;
-    body.appendChild(labelEl);
+  // ── Butterfly bars (двусторонние) вместо buildSection ──────────────────
+  // Стрессоры + нейтральные слева, ресурсы справа, центр = 0
+  const allSorted = [
+    ...stressors,  // сортированы по возрастанию (worst first)
+    ...neutrals,
+    ...resources,  // сортированы по убыванию (best first)
+  ];
 
-    const table = document.createElement('div');
-    table.className = 'sphere-table';
-    list.forEach(sphere => {
-      const val    = scores[sphere.id];
-      const barPct = Math.round((Math.abs(val) / 3) * 100);
-      const row    = document.createElement('div');
-      row.className = `sphere-row ${type}`;
-      row.innerHTML = `
-        <span class="sphere-row-name">${sphere.name}</span>
-        <div class="sphere-bar-wrap"><div class="sphere-bar" style="width:${barPct}%"></div></div>
-        <span class="sphere-row-score">${val > 0 ? '+' + val : val}</span>
-      `;
-      table.appendChild(row);
-    });
-    body.appendChild(table);
-  }
+  const butterflyWrap = document.createElement('div');
+  butterflyWrap.className = 'butterfly-chart';
 
-  buildSection(stressors, 'stress',  'Стрессоры — давят');
-  buildSection(neutrals,  'neutral', 'Нейтральные');
-  buildSection(resources, 'resource','Ресурсы — держат');
+  allSorted.forEach(sphere => {
+    const val  = scores[sphere.id];
+    const type = val < 0 ? 'stress' : val > 0 ? 'resource' : 'neutral';
+    const pct  = Math.round((Math.abs(val) / 3) * 100);
+
+    const row = document.createElement('div');
+    row.className = 'bf-row';
+    row.innerHTML = `
+      <span class="bf-name">${sphere.name}</span>
+      <div class="bf-track">
+        <div class="bf-bar-left ${type === 'stress' ? 'bf-stress' : ''}"
+             style="width:${type === 'stress' ? pct : 0}%"></div>
+        <div class="bf-center"></div>
+        <div class="bf-bar-right ${type === 'resource' ? 'bf-resource' : type === 'neutral' ? 'bf-neutral' : ''}"
+             style="width:${type !== 'stress' ? pct : 0}%"></div>
+      </div>
+      <span class="bf-score bf-score--${type}">${val > 0 ? '+' + val : val === 0 ? '0' : val}</span>
+    `;
+    butterflyWrap.appendChild(row);
+  });
+
+  body.appendChild(butterflyWrap);
 
   // ── Кнопка выбора сферы ───────────────────────────────────────────────
   const pickSection = document.createElement('div');
@@ -375,6 +368,17 @@ function showOffer(sphereId, sphereName) {
 
     <p class="offer-title">Что можно сделать с этим прямо сейчас?</p>
 
+    <!-- Сохранить результаты — сразу после заголовка -->
+    <button class="btn btn-ghost" onclick="downloadResults()" style="align-self:flex-start">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Сохранить результаты
+    </button>
+
     <div class="offer-card">
       <p class="offer-card-title">Пробная сессия</p>
       <p class="offer-card-desc">60–90 минут один на один. Без домашних заданий, лекций и диагнозов. Разберёмся с тем, что тянет именно в этой сфере — и выйдешь с конкретным следующим шагом.</p>
@@ -390,30 +394,17 @@ function showOffer(sphereId, sphereName) {
       <p class="offer-card-price">1 500 ₽</p>
       <div style="display:flex;flex-direction:column;gap:var(--space-2)">
         <a href="${LINKS.game_page}" class="btn btn-outline" target="_blank">Узнать об игре</a>
-        <button class="btn btn-has-game" id="btn-has-game" onclick="toggleHasGame(this)">
+        <button class="btn btn-outline" id="btn-has-game" onclick="toggleHasGame(this)">
           У меня уже есть игра
         </button>
       </div>
-      <!-- Сообщение "уже есть игра" — скрыто по умолчанию -->
+      <!-- Сообщение «уже есть игра» — скрыто по умолчанию -->
       <div id="has-game-msg" class="has-game-msg" style="display:none">
         <p>Отлично! Открывай ссылку на игру (в чат-боте) и начинай с колоды 2 «Предпочитаемое будущее. Как хочется?». Это не про проблему, а про то, чего ты на самом деле хочешь вместо неё.</p>
-        <a href="${LINKS.game_app}" class="btn btn-primary" target="_blank" style="margin-top:var(--space-2)">
-          Открыть игру
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
     </div>
 
     <div class="final-actions">
-      <button class="btn btn-ghost" onclick="downloadResults()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Сохранить результаты
-      </button>
       <div class="messenger-row">
         <a href="${LINKS.telegram}" class="btn btn-ghost" target="_blank">Telegram</a>
         <a href="${LINKS.max}" class="btn btn-ghost" target="_blank">Max</a>
