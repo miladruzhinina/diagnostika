@@ -329,7 +329,6 @@ a { color: inherit; }
 }
 
 .scales-icon {
-  animation: float 4s ease-in-out infinite;
   filter: drop-shadow(0 0 16px rgba(201,146,42,0.7)) drop-shadow(0 0 32px rgba(201,146,42,0.35));
 }
 

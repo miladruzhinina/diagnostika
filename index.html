@@ -18,41 +18,97 @@
       <div class="welcome-bg"></div>
       <div class="welcome-content">
         <div class="scales-icon">
-          <!-- Весы: однотонные, золотые, по референсу -->
-          <svg viewBox="0 0 120 108" width="110" height="108" fill="none" xmlns="http://www.w3.org/2000/svg" class="scales-hero">
-            <!-- Столб -->
-            <rect x="57.5" y="28" width="5" height="58" rx="2.5" fill="#c9922a"/>
-            <!-- Основание: трапеция -->
-            <path d="M44 86 Q60 92 76 86 L79 94 Q60 100 41 94 Z" fill="#c9922a" opacity="0.9"/>
-            <!-- Центральный круг опоры -->
-            <circle cx="60" cy="28" r="5.5" fill="#c9922a"/>
-            <circle cx="60" cy="28" r="3" fill="#1a1a2e"/>
-            <!-- Балка (горизонтальная — весы в балансе на welcome) -->
-            <rect x="14" y="25.5" width="92" height="5" rx="2.5" fill="#c9922a"/>
-            <!-- Левый крюк балки -->
-            <circle cx="18" cy="28" r="3" fill="#c9922a" stroke="#1a1a2e" stroke-width="1"/>
-            <!-- Правый крюк балки -->
-            <circle cx="102" cy="28" r="3" fill="#c9922a" stroke="#1a1a2e" stroke-width="1"/>
-            <!-- Левые цепи: треугольник из 3 нитей -->
-            <line x1="18" y1="28" x2="8" y2="55" stroke="#c9922a" stroke-width="1.5"/>
-            <line x1="18" y1="28" x2="28" y2="55" stroke="#c9922a" stroke-width="1.5"/>
-            <line x1="8" y1="55" x2="28" y2="55" stroke="#c9922a" stroke-width="1.5"/>
-            <!-- Левые узелки цепей -->
-            <circle cx="8" cy="55" r="2" fill="#c9922a"/>
-            <circle cx="28" cy="55" r="2" fill="#c9922a"/>
-            <!-- Левая чаша -->
-            <path d="M4 55 Q18 65 32 55" stroke="#c9922a" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <path d="M4 55 L6 60 Q18 70 30 60 L32 55" fill="#c9922a" opacity="0.85"/>
-            <!-- Правые цепи -->
-            <line x1="102" y1="28" x2="92" y2="55" stroke="#c9922a" stroke-width="1.5"/>
-            <line x1="102" y1="28" x2="112" y2="55" stroke="#c9922a" stroke-width="1.5"/>
-            <line x1="92" y1="55" x2="112" y2="55" stroke="#c9922a" stroke-width="1.5"/>
-            <!-- Правые узелки -->
-            <circle cx="92" cy="55" r="2" fill="#c9922a"/>
-            <circle cx="112" cy="55" r="2" fill="#c9922a"/>
-            <!-- Правая чаша -->
-            <path d="M88 55 Q102 65 116 55" stroke="#c9922a" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <path d="M88 55 L90 60 Q102 70 114 60 L116 55" fill="#c9922a" opacity="0.85"/>
+          <!--
+            Анимация: балка медленно покачивается вокруг опоры (60,28).
+            Цепи+чаши прикреплены к концам балки и качаются вместе с ней.
+            Столб и основание — статичные.
+          -->
+          <svg viewBox="0 0 120 112" width="116" height="112" fill="none"
+               xmlns="http://www.w3.org/2000/svg">
+
+            <!-- Столб (статика) -->
+            <rect x="57.5" y="28" width="5" height="60" rx="2.5" fill="#c9922a"/>
+            <!-- Основание (статика) -->
+            <path d="M42 88 L45 96 Q60 102 75 96 L78 88 Q60 95 42 88 Z"
+                  fill="#c9922a"/>
+            <!-- Центральная опора (статика) -->
+            <circle cx="60" cy="28" r="6" fill="#c9922a"/>
+            <circle cx="60" cy="28" r="3.2" fill="#1a1a2e"/>
+
+            <!-- Балка + цепи + чаши — всё подчинено повороту вокруг (60, 28) -->
+            <g id="scales-beam">
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                values="0 60 28; 6 60 28; 0 60 28; -6 60 28; 0 60 28"
+                dur="4.8s"
+                repeatCount="indefinite"
+                calcMode="spline"
+                keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                keyTimes="0; 0.25; 0.5; 0.75; 1"
+              />
+
+              <!-- Балка -->
+              <rect x="14" y="25.5" width="92" height="5" rx="2.5" fill="#c9922a"/>
+              <!-- Крюки балки -->
+              <circle cx="18" cy="28" r="3.2" fill="#c9922a" stroke="#1a1a2e" stroke-width="1.2"/>
+              <circle cx="102" cy="28" r="3.2" fill="#c9922a" stroke="#1a1a2e" stroke-width="1.2"/>
+
+              <!-- Левая чаша с цепями — подвешена к (18,28)
+                   Физика: чаша отстаёт от балки — компенсация половины угла (equalAmplitude)
+                   Противофаза правой: values="-3 18 28; 3 18 28; -3 18 28; 3 18 28; -3 18 28" -->
+              <g id="left-pan">
+                <animateTransform
+                  attributeName="transform"
+                  type="rotate"
+                  values="-3 18 28; 3 18 28; -3 18 28; 3 18 28; -3 18 28"
+                  dur="4.8s"
+                  repeatCount="indefinite"
+                  calcMode="spline"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  keyTimes="0; 0.25; 0.5; 0.75; 1"
+                />
+                <!-- Цепи: треугольник -->
+                <line x1="18" y1="30" x2="7"  y2="57" stroke="#c9922a" stroke-width="1.5"/>
+                <line x1="18" y1="30" x2="29" y2="57" stroke="#c9922a" stroke-width="1.5"/>
+                <line x1="7"  y1="57" x2="29" y2="57" stroke="#c9922a" stroke-width="1.5"/>
+                <!-- Узелки -->
+                <circle cx="7"  cy="57" r="2" fill="#c9922a"/>
+                <circle cx="29" cy="57" r="2" fill="#c9922a"/>
+                <!-- Чаша -->
+                <path d="M3 57 L5 63 Q18 73 31 63 L33 57 Z"
+                      fill="#c9922a" opacity="0.9"/>
+                <line x1="3" y1="57" x2="33" y2="57"
+                      stroke="#c9922a" stroke-width="2" stroke-linecap="round"/>
+              </g>
+
+              <!-- Правая чаша — в фазе с балкой, противофаза левой -->
+              <g id="right-pan">
+                <animateTransform
+                  attributeName="transform"
+                  type="rotate"
+                  values="3 102 28; -3 102 28; 3 102 28; -3 102 28; 3 102 28"
+                  dur="4.8s"
+                  repeatCount="indefinite"
+                  calcMode="spline"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  keyTimes="0; 0.25; 0.5; 0.75; 1"
+                />
+                <!-- Цепи -->
+                <line x1="102" y1="30" x2="91"  y2="57" stroke="#c9922a" stroke-width="1.5"/>
+                <line x1="102" y1="30" x2="113" y2="57" stroke="#c9922a" stroke-width="1.5"/>
+                <line x1="91"  y1="57" x2="113" y2="57" stroke="#c9922a" stroke-width="1.5"/>
+                <!-- Узелки -->
+                <circle cx="91"  cy="57" r="2" fill="#c9922a"/>
+                <circle cx="113" cy="57" r="2" fill="#c9922a"/>
+                <!-- Чаша -->
+                <path d="M87 57 L89 63 Q102 73 115 63 L117 57 Z"
+                      fill="#c9922a" opacity="0.9"/>
+                <line x1="87" y1="57" x2="117" y2="57"
+                      stroke="#c9922a" stroke-width="2" stroke-linecap="round"/>
+              </g>
+
+            </g><!-- /scales-beam -->
           </svg>
         </div>
         <h1 class="welcome-title">Баланс весов</h1>
