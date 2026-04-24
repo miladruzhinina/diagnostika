@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Баланс весов — диагностика</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div id="app">
+
+    <!-- ЭКРАН 0: Приветственный -->
+    <div class="screen active" id="screen-welcome">
+      <div class="welcome-bg"></div>
+      <div class="welcome-content">
+        <div class="scales-icon">
+          <svg viewBox="0 0 120 100" width="120" height="100" fill="none" xmlns="http://www.w3.org/2000/svg" class="scales-hero">
+            <line x1="60" y1="22" x2="60" y2="80" stroke="#c9922a" stroke-width="2.5" stroke-linecap="round"/>
+            <ellipse cx="60" cy="82" rx="22" ry="6" fill="#c9922a" opacity="0.25"/>
+            <circle cx="60" cy="22" r="4" fill="#c9922a"/>
+            <line x1="16" y1="22" x2="104" y2="22" stroke="#c9922a" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="16" y1="22" x2="16" y2="46" stroke="#c0392b" stroke-width="2" stroke-linecap="round"/>
+            <ellipse cx="16" cy="48" rx="18" ry="5.5" fill="#c0392b" opacity="0.15"/>
+            <ellipse cx="16" cy="48" rx="18" ry="5.5" stroke="#c0392b" stroke-width="1.5"/>
+            <line x1="104" y1="22" x2="104" y2="42" stroke="#2d5a4e" stroke-width="2" stroke-linecap="round"/>
+            <ellipse cx="104" cy="44" rx="18" ry="5.5" fill="#2d5a4e" opacity="0.15"/>
+            <ellipse cx="104" cy="44" rx="18" ry="5.5" stroke="#2d5a4e" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h1 class="welcome-title">Баланс весов</h1>
+        <p class="welcome-subtitle">Диагностика в подходе ОРКТ</p>
+        <p class="welcome-desc">У каждого из нас есть внутренние весы. Посмотрим вместе на твои — займёт 5–7 минут.</p>
+        <div class="welcome-actions">
+          <button class="btn btn-primary" onclick="showQualifier()">Начать диагностику</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ЭКРАН 1: Квалифицирующий вопрос -->
+    <div class="screen" id="screen-qualifier">
+      <div class="screen-body qualifier-body">
+        <p class="step-label">Один вопрос для точности</p>
+        <h2 class="deck-title">Есть ли у тебя дети до 18 лет?</h2>
+        <p class="deck-hint">Это влияет на набор сфер диагностики — не на результат.</p>
+        <div class="qualifier-actions">
+          <button class="btn btn-primary btn-qual" onclick="startDiagnostics(true)">Да, есть</button>
+          <button class="btn btn-ghost btn-qual" onclick="startDiagnostics(false)">Нет (или дети уже взрослые)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ЭКРАН 2: Вступление к вопросам -->
+    <div class="screen" id="screen-intro">
+      <div class="screen-body">
+        <p class="step-label">Как это работает</p>
+        <h2 class="deck-title">Шкала от −3 до +3</h2>
+        <div class="intro-card">
+          <p>В каждой сфере поставь оценку от <strong>−3</strong> до <strong>+3</strong>.</p>
+          <p>Где <strong>−3</strong> — совсем тяжело, <strong>+3</strong> — всё хорошо, <strong>0</strong> — нейтрально.</p>
+          <p>Правильных ответов нет. Отвечай так, как чувствуешь прямо сейчас.</p>
+        </div>
+        <button class="btn btn-primary btn-next" onclick="showQuestion(0)">Начать</button>
+      </div>
+    </div>
+
+    <!-- ЭКРАН 3: Вопрос (рендерится динамически) -->
+    <div class="screen" id="screen-question">
+      <div class="screen-header">
+        <button class="btn-back" id="question-back-btn" aria-label="Назад">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div style="width:40px"></div>
+      </div>
+      <div class="screen-body question-body">
+        <p class="step-label" id="q-step-label"></p>
+        <p class="sphere-name" id="q-sphere-name"></p>
+        <h2 class="deck-title" id="q-question"></h2>
+
+        <div class="slider-block">
+          <div class="slider-value-display" id="q-value-display">0</div>
+          <div class="slider-track-wrap">
+            <span class="slider-end-label left">−3</span>
+            <input type="range" class="diag-slider" id="q-slider" min="-3" max="3" step="1" value="0"
+              oninput="onSliderInput(this)" onchange="onSliderInput(this)">
+            <span class="slider-end-label right">+3</span>
+          </div>
+          <div class="slider-ticks">
+            <span>−3</span><span>−2</span><span>−1</span><span>0</span><span>+1</span><span>+2</span><span>+3</span>
+          </div>
+        </div>
+
+        <div class="hint-row">
+          <div class="hint-pill minus" id="q-hint-minus"></div>
+          <div class="hint-pill plus" id="q-hint-plus"></div>
+        </div>
+
+        <button class="btn btn-primary btn-next" id="btn-q-next" onclick="saveAndNext()">
+          Далее
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ЭКРАН 4: Перед картой результатов -->
+    <div class="screen" id="screen-pre-result">
+      <div class="screen-body pre-result-body">
+        <div class="pre-result-icon">
+          <svg viewBox="0 0 64 64" width="56" height="56" fill="none">
+            <circle cx="32" cy="32" r="28" stroke="var(--color-primary)" stroke-width="1.5" opacity="0.4"/>
+            <path d="M20 32l9 9 15-15" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 class="deck-title">Финиш</h2>
+        <p class="deck-hint">Спасибо, что не сбежал(а) на середине — некоторые вопросы были, прямо скажем, не из лёгких)</p>
+        <p class="deck-hint">Сейчас покажу, что получилось: что давит и забирает силы, а где есть опора. Низкие оценки — не приговор.</p>
+        <button class="btn btn-primary btn-next" onclick="showResults()">Посмотреть карту</button>
+      </div>
+    </div>
+
+    <!-- ЭКРАН 5: Результаты -->
+    <div class="screen" id="screen-results">
+      <div class="screen-header">
+        <div style="width:40px"></div>
+        <h2 class="screen-title">Твоя карта</h2>
+        <div style="width:40px"></div>
+      </div>
+      <div class="screen-body results-body" id="results-body">
+        <!-- рендерится динамически -->
+      </div>
+    </div>
+
+    <!-- ЭКРАН 6: Оффер после выбора стрессора -->
+    <div class="screen" id="screen-offer">
+      <div class="screen-header">
+        <button class="btn-back" onclick="showScreen('screen-results')" aria-label="Назад">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <h2 class="screen-title">Что дальше</h2>
+        <div style="width:40px"></div>
+      </div>
+      <div class="screen-body offer-body" id="offer-body">
+        <!-- рендерится динамически -->
+      </div>
+    </div>
+
+    <!-- ЭКРАН 7: Всё в плюсе -->
+    <div class="screen" id="screen-all-positive">
+      <div class="screen-body pre-result-body">
+        <div class="pre-result-icon">
+          <svg viewBox="0 0 64 64" width="56" height="56" fill="none">
+            <circle cx="32" cy="32" r="28" stroke="var(--color-primary)" stroke-width="1.5" opacity="0.4"/>
+            <path d="M22 34c2 4 5 6 10 6s8-2 10-6" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="24" cy="26" r="2" fill="var(--color-primary)"/>
+            <circle cx="40" cy="26" r="2" fill="var(--color-primary)"/>
+          </svg>
+        </div>
+        <h2 class="deck-title">Карта выглядит устойчиво</h2>
+        <div class="intro-card">
+          <p>Большинство сфер в плюсе. Формально можно закрывать чат с чистой совестью.</p>
+          <p>Но ты же здесь не просто так. Значит, что-то есть — может, пока не оформилось в слова, может, просто фоновое ощущение, что что-то не так, хотя снаружи всё ровно. Такое сложно поймать в диагностике, но хорошо слышно в разговоре.</p>
+        </div>
+        <div class="final-cta">
+          <p>Если хочешь разобраться — приходи на пробную сессию. Один раз, без обязательств.</p>
+          <p class="final-cta-price">Пробная сессия: 60–90 минут, 2 250 ₽</p>
+          <div class="final-cta-buttons">
+            <a href="https://planerka.app/mila-druzhinina-dfjngj/znakomstvo" class="btn btn-primary" target="_blank">Записаться — 2 250 ₽</a>
+          </div>
+        </div>
+        <div class="final-actions">
+          <button class="btn btn-outline" onclick="downloadResults()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Сохранить результаты
+          </button>
+          <div class="messenger-row">
+            <a href="https://t.me/m/loWeYMX3ZjM6" class="btn btn-ghost" target="_blank">Telegram</a>
+            <a href="https://max.ru/u/f9LHodD0cOLNnjDdwBZ7CXNI7OWugqdgJM1gH8nl0XkKT82UJm_cwXSnZ3I" class="btn btn-ghost" target="_blank">Max</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
