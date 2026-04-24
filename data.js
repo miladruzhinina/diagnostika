@@ -122,6 +122,6 @@ const LINKS = {
   session: 'https://planerka.app/mila-druzhinina-dfjngj/znakomstvo',
   game_page: 'https://mila-druzhinina.chatium.ru/stranitsa-igra',
   game_app: 'https://miladruzhinina.github.io/igra/',
-  telegram: 'https://t.me/m/loWeYMX3ZjM6',
+  telegram: 'https://t.me/mila_druzhinina_psy',
   max: 'https://max.ru/u/f9LHodD0cOLNnjDdwBZ7CXNI7OWugqdgJM1gH8nl0XkKT82UJm_cwXSnZ3I'
 };
