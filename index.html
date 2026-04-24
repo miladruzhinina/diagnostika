@@ -216,6 +216,23 @@
       </div>
     </div>
 
+    <!-- ЭКРАН 5б: Выбор сферы (отдельный экран) -->
+    <div class="screen" id="screen-pick-sphere">
+      <div class="screen-header">
+        <button class="btn-back" onclick="showScreen('screen-results')" aria-label="Назад">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <h2 class="screen-title">Выбор сферы</h2>
+        <div style="width:40px"></div>
+      </div>
+      <div class="screen-body" style="justify-content:flex-start;gap:var(--space-5)">
+        <p class="deck-hint" style="font-size:var(--text-sm);line-height:1.65">
+          Выбери одну сферу, где даже минимальные улучшения принесут тебе заметное облегчение.
+        </p>
+        <div id="pick-sphere-list" style="display:flex;flex-direction:column;gap:var(--space-2)"></div>
+      </div>
+    </div>
+
     <!-- ЭКРАН 6: Оффер после выбора стрессора -->
     <div class="screen" id="screen-offer">
       <div class="screen-header">
