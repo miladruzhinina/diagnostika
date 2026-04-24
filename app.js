@@ -154,142 +154,135 @@ function showResults() {
   const body = document.getElementById('results-body');
   body.innerHTML = '';
 
-  // ── Красивые SVG-весы ─────────────────────────────────────────────────
+  // ── SVG-весы по референсу (треугольные цепи, чаши-ладони) ──────────────
   const maxTilt = 18;
   const diff    = totalStress - totalResource;
   const maxDiff = Math.max(totalStress + totalResource, 1);
   const tiltDeg = Math.min(Math.max((diff / maxDiff) * maxTilt, -maxTilt), maxTilt);
   const rad     = (tiltDeg * Math.PI) / 180;
 
-  // Геометрия
-  const cx = 150, cy = 40;   // опора
-  const arm = 90;             // длина плеча балки
-  const chainH = 26;          // длина цепи
-  const bowlRx = 34, bowlRy = 10; // размер чаши
+  // Геометрия: опора в центре
+  const cx = 150, cy = 48;
+  const arm = 95;      // полудлина балки
+  const bowlW = 44;    // полуширина чаши (ладонь)
 
   // Концы балки после поворота
   const lx = cx - arm * Math.cos(rad), ly = cy - arm * Math.sin(rad);
   const rx = cx + arm * Math.cos(rad), ry = cy + arm * Math.sin(rad);
 
-  // Точки подвеса чаш
-  const lbx = lx, lby = ly + chainH;
-  const rbx = rx, rby = ry + chainH;
+  // Нижние точки треугольных цепей (середина верхнего края чаши)
+  const lCy = ly + 36, rCy = ry + 36;
 
-  // Смещение подписей
-  const labelOff = bowlRy + 16;
+  // Вспомогательная: крюки на концах балки
+  const lHookR = 4, rHookR = 4;
 
   const scalesWrap = document.createElement('div');
   scalesWrap.className = 'scales-result-wrap';
   scalesWrap.innerHTML = `
     <div class="scales-svg-container">
-      <svg viewBox="0 0 300 180" width="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="bowl-stress-fill" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="var(--color-stress)" stop-opacity="0.22"/>
-            <stop offset="100%" stop-color="var(--color-stress)" stop-opacity="0.04"/>
-          </radialGradient>
-          <radialGradient id="bowl-resource-fill" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="var(--color-resource)" stop-opacity="0.22"/>
-            <stop offset="100%" stop-color="var(--color-resource)" stop-opacity="0.04"/>
-          </radialGradient>
-          <filter id="soft-glow-s">
-            <feGaussianBlur stdDeviation="2.5" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="soft-glow-r">
-            <feGaussianBlur stdDeviation="2.5" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
+      <svg viewBox="0 0 300 200" width="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
 
-        <!-- Постамент -->
-        <path d="M ${cx - 4} ${cy + 1} L ${cx - 4} 150 Q ${cx} 157 ${cx + 4} 150 L ${cx + 4} ${cy + 1}"
-          fill="var(--color-primary)" opacity="0.2"/>
-        <path d="M ${cx - 4} ${cy + 1} L ${cx - 4} 150 Q ${cx} 157 ${cx + 4} 150 L ${cx + 4} ${cy + 1}"
-          stroke="var(--color-primary)" stroke-width="1.2" fill="none" opacity="0.5"/>
-        <!-- Основание -->
-        <ellipse cx="${cx}" cy="152" rx="20" ry="5"
-          fill="var(--color-primary)" opacity="0.15"/>
-        <path d="M ${cx - 20} 152 Q ${cx} 157 ${cx + 20} 152"
-          stroke="var(--color-primary)" stroke-width="1.5" opacity="0.4" fill="none"/>
+        <!-- === СТОЛБ === -->
+        <!-- Стержень -->
+        <rect x="${cx - 4}" y="${cy}" width="8" height="118" rx="4" fill="var(--color-primary)"/>
+        <!-- Основание-трапеция -->
+        <path d="M ${cx - 28} 168 L ${cx - 16} 158 L ${cx + 16} 158 L ${cx + 28} 168 L ${cx + 28} 176 Q ${cx} 182 ${cx - 28} 176 Z"
+          fill="var(--color-primary)"/>
 
-        <!-- Ромб опоры -->
-        <path d="M ${cx} ${cy - 7} L ${cx + 6} ${cy} L ${cx} ${cy + 7} L ${cx - 6} ${cy} Z"
-          fill="var(--color-primary)" opacity="0.9"/>
+        <!-- === ЦЕНТРАЛЬНЫЙ ШАР ОПОРЫ === -->
+        <circle cx="${cx}" cy="${cy}" r="8" fill="var(--color-primary)"/>
+        <circle cx="${cx}" cy="${cy}" r="4.5" fill="var(--color-surface, #faf9f6)" opacity="0.7"/>
 
-        <!-- Балка -->
+        <!-- === БАЛКА === -->
+        <rect x="${lx.toFixed(1)}" y="${(Math.min(ly, ry) - 3.5).toFixed(1)}"
+          width="${(2 * arm).toFixed(1)}" height="7" rx="3.5"
+          fill="var(--color-primary)"
+          transform="rotate(${(-tiltDeg).toFixed(2)}, ${cx}, ${cy})"/>
+
+        <!-- === КРЮКИ НА КОНЦАХ БАЛКИ === -->
+        <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="${lHookR}"
+          fill="var(--color-primary)" stroke="var(--color-surface, #faf9f6)" stroke-width="1.5"/>
+        <circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="${rHookR}"
+          fill="var(--color-primary)" stroke="var(--color-surface, #faf9f6)" stroke-width="1.5"/>
+
+        <!-- === ЛЕВЫЕ ЦЕПИ (треугольник) === -->
         <line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}"
-              x2="${rx.toFixed(1)}" y2="${ry.toFixed(1)}"
-          stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round"/>
-
-        <!-- Левые цепи (3 нити) -->
-        <line x1="${(lx - 9).toFixed(1)}" y1="${ly.toFixed(1)}"
-              x2="${(lbx - 9).toFixed(1)}" y2="${lby.toFixed(1)}"
-          stroke="var(--color-stress)" stroke-width="1" opacity="0.45"/>
+              x2="${(lx - bowlW).toFixed(1)}" y2="${lCy.toFixed(1)}"
+          stroke="var(--color-stress)" stroke-width="1.5" stroke-linecap="round"/>
         <line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}"
-              x2="${lbx.toFixed(1)}" y2="${lby.toFixed(1)}"
-          stroke="var(--color-stress)" stroke-width="1.2" opacity="0.7"/>
-        <line x1="${(lx + 9).toFixed(1)}" y1="${ly.toFixed(1)}"
-              x2="${(lbx + 9).toFixed(1)}" y2="${lby.toFixed(1)}"
-          stroke="var(--color-stress)" stroke-width="1" opacity="0.45"/>
+              x2="${(lx + bowlW).toFixed(1)}" y2="${lCy.toFixed(1)}"
+          stroke="var(--color-stress)" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Нижние узелки цепей -->
+        <circle cx="${(lx - bowlW).toFixed(1)}" cy="${lCy.toFixed(1)}" r="2.5"
+          fill="var(--color-stress)" opacity="0.8"/>
+        <circle cx="${(lx + bowlW).toFixed(1)}" cy="${lCy.toFixed(1)}" r="2.5"
+          fill="var(--color-stress)" opacity="0.8"/>
 
-        <!-- Левая чаша: заливка -->
-        <ellipse cx="${lbx.toFixed(1)}" cy="${lby.toFixed(1)}"
-          rx="${bowlRx}" ry="${bowlRy}"
-          fill="url(#bowl-stress-fill)" filter="url(#soft-glow-s)"/>
-        <!-- Левая чаша: контур -->
-        <ellipse cx="${lbx.toFixed(1)}" cy="${lby.toFixed(1)}"
-          rx="${bowlRx}" ry="${bowlRy}"
-          stroke="var(--color-stress)" stroke-width="1.8" opacity="0.85"/>
-        <!-- Дно чаши -->
-        <path d="M ${(lbx - bowlRx).toFixed(1)} ${lby.toFixed(1)}
-                 Q ${lbx.toFixed(1)} ${(lby + bowlRy * 2.4).toFixed(1)}
-                   ${(lbx + bowlRx).toFixed(1)} ${lby.toFixed(1)}"
-          stroke="var(--color-stress)" stroke-width="1.4" fill="none" opacity="0.4"/>
+        <!-- === ЛЕВАЯ ЧАША === -->
+        <!-- Верхний ободок -->
+        <line x1="${(lx - bowlW).toFixed(1)}" y1="${lCy.toFixed(1)}"
+              x2="${(lx + bowlW).toFixed(1)}" y2="${lCy.toFixed(1)}"
+          stroke="var(--color-stress)" stroke-width="2" stroke-linecap="round"/>
+        <!-- Тело чаши (скруглённый прямоугольник + дно) -->
+        <path d="M ${(lx - bowlW).toFixed(1)} ${lCy.toFixed(1)}
+                 L ${(lx - bowlW + 4).toFixed(1)} ${(lCy + 16).toFixed(1)}
+                 Q ${lx.toFixed(1)} ${(lCy + 24).toFixed(1)}
+                   ${(lx + bowlW - 4).toFixed(1)} ${(lCy + 16).toFixed(1)}
+                 L ${(lx + bowlW).toFixed(1)} ${lCy.toFixed(1)}"
+          fill="var(--color-stress)" opacity="0.2"/>
+        <path d="M ${(lx - bowlW).toFixed(1)} ${lCy.toFixed(1)}
+                 L ${(lx - bowlW + 4).toFixed(1)} ${(lCy + 16).toFixed(1)}
+                 Q ${lx.toFixed(1)} ${(lCy + 24).toFixed(1)}
+                   ${(lx + bowlW - 4).toFixed(1)} ${(lCy + 16).toFixed(1)}
+                 L ${(lx + bowlW).toFixed(1)} ${lCy.toFixed(1)}"
+          stroke="var(--color-stress)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+        <!-- Счёт -->
+        <text x="${lx.toFixed(1)}" y="${(lCy + 14).toFixed(1)}"
+          text-anchor="middle" dominant-baseline="middle"
+          font-family="Cormorant Garamond, serif" font-size="15" font-weight="700"
+          fill="var(--color-stress)">${totalStress > 0 ? '−' + totalStress : '0'}</text>
+        <!-- Подпись -->
+        <text x="${lx.toFixed(1)}" y="${(lCy + 34).toFixed(1)}"
+          text-anchor="middle"
+          font-family="Nunito, sans-serif" font-size="8" font-weight="800"
+          fill="var(--color-stress)" letter-spacing="0.06em" opacity="0.7">СТРЕССОРЫ</text>
 
-        <!-- Правые цепи -->
-        <line x1="${(rx - 9).toFixed(1)}" y1="${ry.toFixed(1)}"
-              x2="${(rbx - 9).toFixed(1)}" y2="${rby.toFixed(1)}"
-          stroke="var(--color-resource)" stroke-width="1" opacity="0.45"/>
+        <!-- === ПРАВЫЕ ЦЕПИ (треугольник) === -->
         <line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}"
-              x2="${rbx.toFixed(1)}" y2="${rby.toFixed(1)}"
-          stroke="var(--color-resource)" stroke-width="1.2" opacity="0.7"/>
-        <line x1="${(rx + 9).toFixed(1)}" y1="${ry.toFixed(1)}"
-              x2="${(rbx + 9).toFixed(1)}" y2="${rby.toFixed(1)}"
-          stroke="var(--color-resource)" stroke-width="1" opacity="0.45"/>
+              x2="${(rx - bowlW).toFixed(1)}" y2="${rCy.toFixed(1)}"
+          stroke="var(--color-resource)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}"
+              x2="${(rx + bowlW).toFixed(1)}" y2="${rCy.toFixed(1)}"
+          stroke="var(--color-resource)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="${(rx - bowlW).toFixed(1)}" cy="${rCy.toFixed(1)}" r="2.5"
+          fill="var(--color-resource)" opacity="0.8"/>
+        <circle cx="${(rx + bowlW).toFixed(1)}" cy="${rCy.toFixed(1)}" r="2.5"
+          fill="var(--color-resource)" opacity="0.8"/>
 
-        <!-- Правая чаша: заливка -->
-        <ellipse cx="${rbx.toFixed(1)}" cy="${rby.toFixed(1)}"
-          rx="${bowlRx}" ry="${bowlRy}"
-          fill="url(#bowl-resource-fill)" filter="url(#soft-glow-r)"/>
-        <!-- Правая чаша: контур -->
-        <ellipse cx="${rbx.toFixed(1)}" cy="${rby.toFixed(1)}"
-          rx="${bowlRx}" ry="${bowlRy}"
-          stroke="var(--color-resource)" stroke-width="1.8" opacity="0.85"/>
-        <path d="M ${(rbx - bowlRx).toFixed(1)} ${rby.toFixed(1)}
-                 Q ${rbx.toFixed(1)} ${(rby + bowlRy * 2.4).toFixed(1)}
-                   ${(rbx + bowlRx).toFixed(1)} ${rby.toFixed(1)}"
-          stroke="var(--color-resource)" stroke-width="1.4" fill="none" opacity="0.4"/>
-
-        <!-- Счёт в чашах -->
-        <text x="${lbx.toFixed(1)}" y="${(lby + 5).toFixed(1)}"
+        <!-- === ПРАВАЯ ЧАША === -->
+        <line x1="${(rx - bowlW).toFixed(1)}" y1="${rCy.toFixed(1)}"
+              x2="${(rx + bowlW).toFixed(1)}" y2="${rCy.toFixed(1)}"
+          stroke="var(--color-resource)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M ${(rx - bowlW).toFixed(1)} ${rCy.toFixed(1)}
+                 L ${(rx - bowlW + 4).toFixed(1)} ${(rCy + 16).toFixed(1)}
+                 Q ${rx.toFixed(1)} ${(rCy + 24).toFixed(1)}
+                   ${(rx + bowlW - 4).toFixed(1)} ${(rCy + 16).toFixed(1)}
+                 L ${(rx + bowlW).toFixed(1)} ${rCy.toFixed(1)}"
+          fill="var(--color-resource)" opacity="0.2"/>
+        <path d="M ${(rx - bowlW).toFixed(1)} ${rCy.toFixed(1)}
+                 L ${(rx - bowlW + 4).toFixed(1)} ${(rCy + 16).toFixed(1)}
+                 Q ${rx.toFixed(1)} ${(rCy + 24).toFixed(1)}
+                   ${(rx + bowlW - 4).toFixed(1)} ${(rCy + 16).toFixed(1)}
+                 L ${(rx + bowlW).toFixed(1)} ${rCy.toFixed(1)}"
+          stroke="var(--color-resource)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+        <text x="${rx.toFixed(1)}" y="${(rCy + 14).toFixed(1)}"
           text-anchor="middle" dominant-baseline="middle"
-          font-family="Cormorant Garamond, serif" font-size="14" font-weight="600"
-          fill="var(--color-stress)">${totalStress > 0 ? '\u2212' + totalStress : '0'}</text>
-        <text x="${rbx.toFixed(1)}" y="${(rby + 5).toFixed(1)}"
-          text-anchor="middle" dominant-baseline="middle"
-          font-family="Cormorant Garamond, serif" font-size="14" font-weight="600"
+          font-family="Cormorant Garamond, serif" font-size="15" font-weight="700"
           fill="var(--color-resource)">${totalResource > 0 ? '+' + totalResource : '0'}</text>
-
-        <!-- Подписи -->
-        <text x="${lbx.toFixed(1)}" y="${(lby + labelOff).toFixed(1)}"
+        <text x="${rx.toFixed(1)}" y="${(rCy + 34).toFixed(1)}"
           text-anchor="middle"
-          font-family="Nunito, sans-serif" font-size="8.5" font-weight="800"
-          fill="var(--color-stress)" letter-spacing="0.07em" opacity="0.75">СТРЕССОРЫ</text>
-        <text x="${rbx.toFixed(1)}" y="${(rby + labelOff).toFixed(1)}"
-          text-anchor="middle"
-          font-family="Nunito, sans-serif" font-size="8.5" font-weight="800"
-          fill="var(--color-resource)" letter-spacing="0.07em" opacity="0.75">РЕСУРСЫ</text>
+          font-family="Nunito, sans-serif" font-size="8" font-weight="800"
+          fill="var(--color-resource)" letter-spacing="0.06em" opacity="0.7">РЕСУРСЫ</text>
       </svg>
     </div>
   `;

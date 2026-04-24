@@ -18,17 +18,41 @@
       <div class="welcome-bg"></div>
       <div class="welcome-content">
         <div class="scales-icon">
-          <svg viewBox="0 0 120 100" width="120" height="100" fill="none" xmlns="http://www.w3.org/2000/svg" class="scales-hero">
-            <line x1="60" y1="22" x2="60" y2="80" stroke="#c9922a" stroke-width="2.5" stroke-linecap="round"/>
-            <ellipse cx="60" cy="82" rx="22" ry="6" fill="#c9922a" opacity="0.25"/>
-            <circle cx="60" cy="22" r="4" fill="#c9922a"/>
-            <line x1="16" y1="22" x2="104" y2="22" stroke="#c9922a" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="16" y1="22" x2="16" y2="46" stroke="#c0392b" stroke-width="2" stroke-linecap="round"/>
-            <ellipse cx="16" cy="48" rx="18" ry="5.5" fill="#c0392b" opacity="0.15"/>
-            <ellipse cx="16" cy="48" rx="18" ry="5.5" stroke="#c0392b" stroke-width="1.5"/>
-            <line x1="104" y1="22" x2="104" y2="42" stroke="#2d5a4e" stroke-width="2" stroke-linecap="round"/>
-            <ellipse cx="104" cy="44" rx="18" ry="5.5" fill="#2d5a4e" opacity="0.15"/>
-            <ellipse cx="104" cy="44" rx="18" ry="5.5" stroke="#2d5a4e" stroke-width="1.5"/>
+          <!-- Весы: однотонные, золотые, по референсу -->
+          <svg viewBox="0 0 120 108" width="110" height="108" fill="none" xmlns="http://www.w3.org/2000/svg" class="scales-hero">
+            <!-- Столб -->
+            <rect x="57.5" y="28" width="5" height="58" rx="2.5" fill="#c9922a"/>
+            <!-- Основание: трапеция -->
+            <path d="M44 86 Q60 92 76 86 L79 94 Q60 100 41 94 Z" fill="#c9922a" opacity="0.9"/>
+            <!-- Центральный круг опоры -->
+            <circle cx="60" cy="28" r="5.5" fill="#c9922a"/>
+            <circle cx="60" cy="28" r="3" fill="#1a1a2e"/>
+            <!-- Балка (горизонтальная — весы в балансе на welcome) -->
+            <rect x="14" y="25.5" width="92" height="5" rx="2.5" fill="#c9922a"/>
+            <!-- Левый крюк балки -->
+            <circle cx="18" cy="28" r="3" fill="#c9922a" stroke="#1a1a2e" stroke-width="1"/>
+            <!-- Правый крюк балки -->
+            <circle cx="102" cy="28" r="3" fill="#c9922a" stroke="#1a1a2e" stroke-width="1"/>
+            <!-- Левые цепи: треугольник из 3 нитей -->
+            <line x1="18" y1="28" x2="8" y2="55" stroke="#c9922a" stroke-width="1.5"/>
+            <line x1="18" y1="28" x2="28" y2="55" stroke="#c9922a" stroke-width="1.5"/>
+            <line x1="8" y1="55" x2="28" y2="55" stroke="#c9922a" stroke-width="1.5"/>
+            <!-- Левые узелки цепей -->
+            <circle cx="8" cy="55" r="2" fill="#c9922a"/>
+            <circle cx="28" cy="55" r="2" fill="#c9922a"/>
+            <!-- Левая чаша -->
+            <path d="M4 55 Q18 65 32 55" stroke="#c9922a" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M4 55 L6 60 Q18 70 30 60 L32 55" fill="#c9922a" opacity="0.85"/>
+            <!-- Правые цепи -->
+            <line x1="102" y1="28" x2="92" y2="55" stroke="#c9922a" stroke-width="1.5"/>
+            <line x1="102" y1="28" x2="112" y2="55" stroke="#c9922a" stroke-width="1.5"/>
+            <line x1="92" y1="55" x2="112" y2="55" stroke="#c9922a" stroke-width="1.5"/>
+            <!-- Правые узелки -->
+            <circle cx="92" cy="55" r="2" fill="#c9922a"/>
+            <circle cx="112" cy="55" r="2" fill="#c9922a"/>
+            <!-- Правая чаша -->
+            <path d="M88 55 Q102 65 116 55" stroke="#c9922a" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M88 55 L90 60 Q102 70 114 60 L116 55" fill="#c9922a" opacity="0.85"/>
           </svg>
         </div>
         <h1 class="welcome-title">Баланс весов</h1>
