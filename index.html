@@ -150,7 +150,36 @@
       </div>
     </div>
 
-    <!-- ЭКРАН 7: Всё в плюсе -->
+    <!-- ЭКРАН 7: Уже есть игра -->
+    <div class="screen" id="screen-has-game">
+      <div class="screen-header">
+        <button class="btn-back" onclick="showScreen('screen-offer')" aria-label="Назад">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <h2 class="screen-title">Сыграть</h2>
+        <div style="width:40px"></div>
+      </div>
+      <div class="screen-body" style="justify-content:center;gap:var(--space-5)">
+        <div class="intro-card">
+          <p style="font-family:var(--font-display);font-size:var(--text-lg);font-weight:500;color:var(--color-text);line-height:1.3">Игра есть — и это уже хорошо.</p>
+          <p>Сыграй прямо по этой сфере — задавай себе вопросы из колоды, которые касаются того, что давит. Иногда один правильный вопрос делает то, что не делают месяцы размышлений.</p>
+        </div>
+        <a href="https://miladruzhinina.github.io/igra/" class="btn btn-primary btn-next" target="_blank">
+          Играть онлайн прямо сейчас
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div style="padding-top:var(--space-2);border-top:1px solid var(--color-divider);display:flex;flex-direction:column;gap:var(--space-3)">
+          <p class="deck-hint">Если после игры захочется разобраться глубже — приходи на пробную сессию. Один раз, без обязательств.</p>
+          <a href="https://planerka.app/mila-druzhinina-dfjngj/znakomstvo" class="btn btn-outline" style="width:100%;justify-content:center" target="_blank">Записаться на сессию — 2 250 ₽</a>
+        </div>
+        <div class="messenger-row">
+          <a href="https://t.me/milagame_bot" class="btn btn-ghost" target="_blank">Telegram</a>
+          <a href="https://max.ru/u/f9LHodD0cOLNnjDdwBZ7CXNI7OWugqdgJM1gH8nl0XkKT82UJm_cwXSnZ3I" class="btn btn-ghost" target="_blank">Max</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ЭКРАН 8: Всё в плюсе -->
     <div class="screen" id="screen-all-positive">
       <div class="screen-body pre-result-body">
         <div class="pre-result-icon">
@@ -179,7 +208,7 @@
             Сохранить результаты
           </button>
           <div class="messenger-row">
-            <a href="https://t.me/m/loWeYMX3ZjM6" class="btn btn-ghost" target="_blank">Telegram</a>
+            <a href="https://t.me/milagame_bot" class="btn btn-ghost" target="_blank">Telegram</a>
             <a href="https://max.ru/u/f9LHodD0cOLNnjDdwBZ7CXNI7OWugqdgJM1gH8nl0XkKT82UJm_cwXSnZ3I" class="btn btn-ghost" target="_blank">Max</a>
           </div>
         </div>
